@@ -55,6 +55,7 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
 
+
 namespace gem5
 {
 
@@ -325,5 +326,24 @@ BaseTags::BaseTagStats::preDumpStats()
 //new
 uint32_t
 BaseTags::getNumSet() const { return numSets; }
+
+int
+BaseTags::calcRTMShift(const ReplaceableEntry* entry) const
+{
+    //step1 get blk
+    const CacheBlk* blk = static_cast<const CacheBlk*>(entry); //change type
+    int way = blk->getWay();                   // get position
+
+    //step2 get address to caculate set index
+    //Addr tag = blk->getTag();
+    Addr addr = regenerateBlkAddr(blk);
+    unsigned set = (addr / blkSize) % numSets;
+
+    //step3 get current way
+    int current_head = rtmSetPointer[set];        // get access port position
+    
+    //step4
+    return std::abs(current_head - way);          // return shift
+}
 
 } // namespace gem5

@@ -44,6 +44,7 @@
 
 #include "mem/cache/replacement_policies/lru_rp.hh"
 
+
 namespace gem5
 {
 
@@ -60,6 +61,7 @@ class BIP : public LRU
      * if a new entry is inserted at the MRU or LRU position.
      */
     const unsigned btp;
+    
 
   public:
     typedef BIPRPParams Params;
@@ -75,6 +77,7 @@ class BIP : public LRU
      */
     void reset(const std::shared_ptr<ReplacementData>& replacement_data) const
                                                                      override;
+
 };
 
 } // namespace replacement_policy

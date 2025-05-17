@@ -87,6 +87,7 @@ class BaseSetAssoc : public BaseTags
     /** Replacement policy */
     replacement_policy::Base *replacementPolicy;
 
+
   public:
     /** Convenience typedef. */
      typedef BaseSetAssocParams Params;

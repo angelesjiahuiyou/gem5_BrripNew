@@ -370,6 +370,9 @@ class BaseTags : public ClockedObject
      */
     virtual bool anyBlk(std::function<bool(CacheBlk &)> visitor) = 0;
 
+    //new
+    int calcRTMShift(const gem5::ReplaceableEntry*) const;
+
   private:
     /**
      * Update the reference stats using data from the input block
@@ -384,6 +387,8 @@ class BaseTags : public ClockedObject
      * @param blk The input block
      */
     void computeStatsVisitor(CacheBlk &blk);
+
+    
 
     
 };

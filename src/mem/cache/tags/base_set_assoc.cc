@@ -44,6 +44,7 @@
  */
 
 #include "mem/cache/tags/base_set_assoc.hh"
+#include "mem/cache/replacement_policies/brrip_rp.hh"
 
 #include <string>
 
@@ -63,6 +64,11 @@ BaseSetAssoc::BaseSetAssoc(const Params &p)
     // Check parameters
     if (blkSize < 4 || !isPowerOf2(blkSize)) {
         fatal("Block size must be at least 4 and a power of 2");
+    }
+    //new
+    auto* brrip = dynamic_cast<replacement_policy::BRRIP*>(replacementPolicy);
+    if (brrip) {
+        brrip->setTags(this);
     }
 }
 

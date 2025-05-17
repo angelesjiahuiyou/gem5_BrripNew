@@ -54,6 +54,7 @@
 
 #include "base/sat_counter.hh"
 #include "mem/cache/replacement_policies/base.hh"
+#include "mem/cache/tags/base.hh"
 
 namespace gem5
 {
@@ -110,6 +111,7 @@ class BRRIP : public Base
      * if a new entry is inserted with long or distant re-reference.
      */
     const unsigned btp;
+    BaseTags* tags;
 
   public:
     typedef BRRIPRPParams Params;
@@ -157,6 +159,9 @@ class BRRIP : public Base
      * @return A shared pointer to the new replacement data.
      */
     std::shared_ptr<ReplacementData> instantiateEntry() override;
+    //new
+    int calcRTMShift(const ReplaceableEntry* entry) const;
+    void setTags(BaseTags* t) { tags = t; }
 };
 
 } // namespace replacement_policy

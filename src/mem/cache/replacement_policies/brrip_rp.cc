@@ -34,6 +34,7 @@
 #include "base/logging.hh" // For fatal_if
 #include "base/random.hh"
 #include "params/BRRIPRP.hh"
+#include "mem/cache/tags/base.hh"
 
 namespace gem5
 {
@@ -43,7 +44,7 @@ namespace replacement_policy
 
 BRRIP::BRRIP(const Params &p)
   : Base(p), numRRPVBits(p.num_bits), hitPriority(p.hit_priority),
-    btp(p.btp)
+    btp(p.btp), tags(nullptr)
 {
     fatal_if(numRRPVBits <= 0, "There should be at least one bit per RRPV.\n");
 }
@@ -95,51 +96,52 @@ BRRIP::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
 ReplaceableEntry*
 BRRIP::getVictim(const ReplacementCandidates& candidates) const
 {
-    // There must be at least one replacement candidate
     assert(candidates.size() > 0);
 
-    // Use first candidate as dummy victim
-    ReplaceableEntry* victim = candidates[0];
+    // RRPV max value = 2^numRRPVBits - 1
+    const int maxRRPV = (1 << numRRPVBits) - 1;
 
-    // Store victim->rrpv in a variable to improve code readability
-    int victim_RRPV = std::static_pointer_cast<BRRIPReplData>(
-                        victim->replacementData)->rrpv;
+    //creat a new vector to save blocks that we need
+    std::vector<ReplaceableEntry*> maxRRPVCandidates;
 
-    // Visit all candidates to find victim
+    // Step 1: find all RRPV == max blocks
     for (const auto& candidate : candidates) {
-        std::shared_ptr<BRRIPReplData> candidate_repl_data =
-            std::static_pointer_cast<BRRIPReplData>(
-                candidate->replacementData);
+        auto repl_data = std::static_pointer_cast<BRRIPReplData>(candidate->replacementData);
 
-        // Stop searching for victims if an invalid entry is found
-        if (!candidate_repl_data->valid) {
-            return candidate;
+        if (!repl_data->valid) {
+            maxRRPVCandidates.push_back(candidate);  // 把 invalid 的也放入候选
+        }
+        else if (repl_data->rrpv == maxRRPV) {
+            maxRRPVCandidates.push_back(candidate);
         }
 
-        // Update victim entry if necessary
-        int candidate_RRPV = candidate_repl_data->rrpv;
-        if (candidate_RRPV > victim_RRPV) {
-            victim = candidate;
-            victim_RRPV = candidate_RRPV;
-        }
     }
 
-    // Get difference of victim's RRPV to the highest possible RRPV in
-    // order to update the RRPV of all the other entries accordingly
-    int diff = std::static_pointer_cast<BRRIPReplData>(
-        victim->replacementData)->rrpv.saturate();
-
-    // No need to update RRPV if there is no difference
-    if (diff > 0){
-        // Update RRPV of all candidates
+    // Step 2: if not have RRPV==max blocks，so all RRPV++
+    if (maxRRPVCandidates.empty()) {
         for (const auto& candidate : candidates) {
-            std::static_pointer_cast<BRRIPReplData>(
-                candidate->replacementData)->rrpv += diff;
+            auto repl_data = std::static_pointer_cast<BRRIPReplData>(candidate->replacementData);
+            repl_data->rrpv++;
+        }
+        // recurso
+        return getVictim(candidates);
+    }
+
+    // Step 3: from all RRPV==max blocks，choose shift smallest
+    ReplaceableEntry* victim = maxRRPVCandidates[0];
+    int minShift = 513;
+
+    for (const auto& candidate : maxRRPVCandidates) {
+        int shift = tags->calcRTMShift(candidate);
+        if (shift < minShift) {
+            minShift = shift;
+            victim = candidate;
         }
     }
 
     return victim;
 }
+
 
 std::shared_ptr<ReplacementData>
 BRRIP::instantiateEntry()
@@ -148,4 +150,6 @@ BRRIP::instantiateEntry()
 }
 
 } // namespace replacement_policy
+
+
 } // namespace gem5
