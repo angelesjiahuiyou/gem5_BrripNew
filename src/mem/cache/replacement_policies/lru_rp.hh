@@ -36,6 +36,7 @@
 #define __MEM_CACHE_REPLACEMENT_POLICIES_LRU_RP_HH__
 
 #include "mem/cache/replacement_policies/base.hh"
+#include "mem/cache/tags/base.hh"
 
 namespace gem5
 {
@@ -59,6 +60,7 @@ class LRU : public Base
          */
         LRUReplData() : lastTouchTick(0) {}
     };
+    BaseTags* tags;
 
   public:
     typedef LRURPParams Params;
