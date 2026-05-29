@@ -109,7 +109,13 @@ class LRU : public Base
      * @return A shared pointer to the new replacement data.
      */
     std::shared_ptr<ReplacementData> instantiateEntry() override;
+
+    void setTags(BaseTags* t)
+    {
+        tags = t;
+    }
 };
+
 
 } // namespace replacement_policy
 } // namespace gem5

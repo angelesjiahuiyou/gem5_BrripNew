@@ -30,6 +30,9 @@
 
 #include <cassert>
 #include <memory>
+#include <algorithm>
+#include <climits>
+#include <vector>
 
 #include "params/LRURP.hh"
 #include "sim/cur_tick.hh"
@@ -43,7 +46,8 @@ namespace replacement_policy
 {
 
 LRU::LRU(const Params &p)
-  : Base(p)
+  : Base(p),
+  tags(nullptr)
 {
 }
 
@@ -97,6 +101,7 @@ LRU::getVictim(const ReplacementCandidates& candidates) const
 ReplaceableEntry*
 LRU::getVictim(const ReplacementCandidates& candidates) const
 {
+    assert(tags != nullptr);
     assert(candidates.size() > 0);
 
     // tamaño del victim group (puedes cambiar para experimentos)

@@ -70,6 +70,11 @@ BaseSetAssoc::BaseSetAssoc(const Params &p)
     if (brrip) {
         brrip->setTags(this);
     }
+    auto *lru =
+    dynamic_cast<replacement_policy::LRU*>(replacementPolicy);
+
+    if (lru)
+        lru->setTags(this);
 }
 
 void
