@@ -74,7 +74,7 @@ system.mem_ctrl.port = system.membus.mem_side_ports
 
 # --- Configuracion del Benchmark SPEC 2017: 623.xalancbmk_s ---
 # Ruta base proporcionada
-base_path = '/home/jiahui/repos/cpu2017/cpu2017/benchspec/CPU/623.xalancbmk_s/exe'
+base_path = '/scratch/rrodriguez/SPEC2017/623.xalancbmk_s'
 executable = f"{base_path}/xalancbmk_s_base.x86-64"
 
 process = Process()

@@ -45,7 +45,7 @@
 
 #include "mem/cache/tags/base_set_assoc.hh"
 #include "mem/cache/replacement_policies/brrip_rp.hh"
-#include "mem/cache/replacement_policies/lru_rp.hh"
+#include "mem/cache/replacement_policies/mru_rp.hh"
 
 #include <string>
 
@@ -71,11 +71,11 @@ BaseSetAssoc::BaseSetAssoc(const Params &p)
     if (brrip) {
         brrip->setTags(this);
     }
-    auto *lru =
-    dynamic_cast<replacement_policy::LRU*>(replacementPolicy);
+    auto *mru =
+    dynamic_cast<replacement_policy::MRU*>(replacementPolicy);
 
-    if (lru)
-        lru->setTags(this);
+    if (mru)
+        mru->setTags(this);
 }
 
 void

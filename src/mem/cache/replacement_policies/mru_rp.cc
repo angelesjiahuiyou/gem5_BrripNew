@@ -30,9 +30,14 @@
 
 #include <cassert>
 #include <memory>
+#include <algorithm>
+#include <climits>
+#include <vector>
 
 #include "params/MRURP.hh"
 #include "sim/cur_tick.hh"
+
+#define VG_SIZE 4
 
 namespace gem5
 {
@@ -41,7 +46,8 @@ namespace replacement_policy
 {
 
 MRU::MRU(const Params &p)
-  : Base(p)
+  : Base(p),
+  tags(nullptr)
 {
 }
 
@@ -69,26 +75,42 @@ MRU::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
         replacement_data)->lastTouchTick = curTick();
 }
 
+//Get victim new
 ReplaceableEntry*
 MRU::getVictim(const ReplacementCandidates& candidates) const
 {
-    // There must be at least one replacement candidate
+    assert(tags != nullptr);
     assert(candidates.size() > 0);
 
-    // Visit all candidates to find victim
-    ReplaceableEntry* victim = candidates[0];
-    for (const auto& candidate : candidates) {
-        std::shared_ptr<MRUReplData> candidate_replacement_data =
-            std::static_pointer_cast<MRUReplData>(candidate->replacementData);
+    // tamaño del victim group (puedes cambiar para experimentos)
+    int VG = std::max(1, std::min(VG_SIZE, (int)candidates.size()));
 
-        // Stop searching entry if a cache line that doesn't warm up is found.
-        if (candidate_replacement_data->lastTouchTick == 0) {
-            victim = candidate;
-            break;
-        } else if (candidate_replacement_data->lastTouchTick >
-                std::static_pointer_cast<MRUReplData>(
-                    victim->replacementData)->lastTouchTick) {
-            victim = candidate;
+    // copiar candidatos a un vector para poder ordenar
+    std::vector<ReplaceableEntry*> sorted_candidates(candidates.begin(), candidates.end());
+
+    // -------------------------
+    // Paso 1: ordenar por LRU new
+    // (el mas antiguo primero)
+    // -------------------------
+    std::sort(sorted_candidates.begin(), sorted_candidates.end(),
+        [](ReplaceableEntry* a, ReplaceableEntry* b) {
+            auto da = std::static_pointer_cast<MRUReplData>(a->replacementData);
+            auto db = std::static_pointer_cast<MRUReplData>(b->replacementData);
+            return da->lastTouchTick < db->lastTouchTick;
+        });
+
+    // -------------------------
+    // Paso 2: seleccionar los VG mas antiguos
+    // -------------------------
+    ReplaceableEntry* victim = sorted_candidates[0];
+    int minShift = INT_MAX;
+
+    for (int i = 0; i < VG; i++) {
+        int shift = tags->calcRTMShift(sorted_candidates[i]);
+
+        if (shift < minShift) {
+            minShift = shift;
+            victim = sorted_candidates[i];
         }
     }
 

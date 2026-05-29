@@ -28,16 +28,15 @@
 
 /**
  * @file
- * Declaration of a Most Recently Used replacement policy.
- * The victim is chosen using the timestamp. The entry that was accessed the
- * last is the one chosen to be replaced.
+ * Declaration of a Least Recently Used replacement policy.
+ * The victim is chosen using the last touch timestamp.
  */
 
 #ifndef __MEM_CACHE_REPLACEMENT_POLICIES_MRU_RP_HH__
 #define __MEM_CACHE_REPLACEMENT_POLICIES_MRU_RP_HH__
 
-#include "base/types.hh"
 #include "mem/cache/replacement_policies/base.hh"
+#include "mem/cache/tags/base.hh"
 
 namespace gem5
 {
@@ -50,7 +49,7 @@ namespace replacement_policy
 class MRU : public Base
 {
   protected:
-    /** MRU-specific implementation of replacement data. */
+    /** LRUnew-specific implementation of replacement data. */
     struct MRUReplData : ReplacementData
     {
         /** Tick on which the entry was last touched. */
@@ -61,6 +60,7 @@ class MRU : public Base
          */
         MRUReplData() : lastTouchTick(0) {}
     };
+    BaseTags* tags;
 
   public:
     typedef MRURPParams Params;
@@ -95,9 +95,9 @@ class MRU : public Base
                                                                      override;
 
     /**
-     * Find replacement victim using access timestamps.
+     * Find replacement victim using LRU new timestamps.
      *
-     * @param cands Replacement candidates, selected by indexing policy.
+     * @param candidates Replacement candidates, selected by indexing policy.
      * @return Replacement entry to be replaced.
      */
     ReplaceableEntry* getVictim(const ReplacementCandidates& candidates) const
@@ -109,7 +109,13 @@ class MRU : public Base
      * @return A shared pointer to the new replacement data.
      */
     std::shared_ptr<ReplacementData> instantiateEntry() override;
+
+    void setTags(BaseTags* t)
+    {
+        tags = t;
+    }
 };
+
 
 } // namespace replacement_policy
 } // namespace gem5

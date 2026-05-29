@@ -30,14 +30,10 @@
 
 #include <cassert>
 #include <memory>
-#include <algorithm>
-#include <climits>
-#include <vector>
 
 #include "params/LRURP.hh"
 #include "sim/cur_tick.hh"
 
-#define VG_SIZE 4
 
 namespace gem5
 {
@@ -46,8 +42,7 @@ namespace replacement_policy
 {
 
 LRU::LRU(const Params &p)
-  : Base(p),
-  tags(nullptr)
+  : Base(p)
 {
 }
 
@@ -75,7 +70,7 @@ LRU::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
         replacement_data)->lastTouchTick = curTick();
 }
 
-/*
+
 ReplaceableEntry*
 LRU::getVictim(const ReplacementCandidates& candidates) const
 {
@@ -96,48 +91,7 @@ LRU::getVictim(const ReplacementCandidates& candidates) const
 
     return victim;
 }
-*/
-//Get victim new
-ReplaceableEntry*
-LRU::getVictim(const ReplacementCandidates& candidates) const
-{
-    assert(tags != nullptr);
-    assert(candidates.size() > 0);
 
-    // tamaño del victim group (puedes cambiar para experimentos)
-    int VG = std::max(1, std::min(VG_SIZE, (int)candidates.size()));
-
-    // copiar candidatos a un vector para poder ordenar
-    std::vector<ReplaceableEntry*> sorted_candidates(candidates.begin(), candidates.end());
-
-    // -------------------------
-    // Paso 1: ordenar por LRU
-    // (el mas antiguo primero)
-    // -------------------------
-    std::sort(sorted_candidates.begin(), sorted_candidates.end(),
-        [](ReplaceableEntry* a, ReplaceableEntry* b) {
-            auto da = std::static_pointer_cast<LRUReplData>(a->replacementData);
-            auto db = std::static_pointer_cast<LRUReplData>(b->replacementData);
-            return da->lastTouchTick < db->lastTouchTick;
-        });
-
-    // -------------------------
-    // Paso 2: seleccionar los VG mas antiguos
-    // -------------------------
-    ReplaceableEntry* victim = sorted_candidates[0];
-    int minShift = INT_MAX;
-
-    for (int i = 0; i < VG; i++) {
-        int shift = tags->calcRTMShift(sorted_candidates[i]);
-
-        if (shift < minShift) {
-            minShift = shift;
-            victim = sorted_candidates[i];
-        }
-    }
-
-    return victim;
-}
 
 std::shared_ptr<ReplacementData>
 LRU::instantiateEntry()

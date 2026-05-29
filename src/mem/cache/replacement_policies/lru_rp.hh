@@ -60,7 +60,6 @@ class LRU : public Base
          */
         LRUReplData() : lastTouchTick(0) {}
     };
-    BaseTags* tags;
 
   public:
     typedef LRURPParams Params;
@@ -110,10 +109,6 @@ class LRU : public Base
      */
     std::shared_ptr<ReplacementData> instantiateEntry() override;
 
-    void setTags(BaseTags* t)
-    {
-        tags = t;
-    }
 };
 
 
