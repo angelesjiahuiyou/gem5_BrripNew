@@ -45,6 +45,7 @@
 
 #include "mem/cache/tags/base_set_assoc.hh"
 #include "mem/cache/replacement_policies/brrip_rp.hh"
+#include "mem/cache/replacement_policies/lru_rp.hh"
 
 #include <string>
 
